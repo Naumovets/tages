@@ -14,7 +14,7 @@ func (r *Repository) Create(file *entity.File) error {
 		return err
 	}
 
-	slog.Debug("file created", "file", file)
+	slog.Debug("file created", "file id", file.Id)
 
 	return nil
 }

@@ -8,6 +8,7 @@ import (
 	"google.golang.org/grpc/status"
 )
 
+// Upload handles the gRPC stream for uploading files. It limits concurrent uploads
 func (s *serverStorage) Upload(stream tages.Storage_UploadServer) error {
 	s.uploadDownloadLimiter <- struct{}{}
 	defer func() { <-s.uploadDownloadLimiter }()
@@ -20,6 +21,7 @@ func (s *serverStorage) Upload(stream tages.Storage_UploadServer) error {
 	return stream.SendAndClose(&tages.UploadResponse{Id: id})
 }
 
+// GetList handles the gRPC call for listing files. It limits concurrent list requests
 func (s *serverStorage) GetList(ctx context.Context, req *tages.ListFilesRequest) (*tages.ListFilesResponse, error) {
 	s.getListLimiter <- struct{}{}
 	defer func() { <-s.getListLimiter }()
@@ -40,6 +42,7 @@ func (s *serverStorage) GetList(ctx context.Context, req *tages.ListFilesRequest
 	return &tages.ListFilesResponse{Files: files}, nil
 }
 
+// Download handles the gRPC stream for downloading files. It limits concurrent downloads
 func (s *serverStorage) Download(req *tages.DownloadRequest, stream tages.Storage_DownloadServer) error {
 	s.uploadDownloadLimiter <- struct{}{}
 	defer func() { <-s.uploadDownloadLimiter }()

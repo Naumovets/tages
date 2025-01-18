@@ -27,9 +27,14 @@ type DBConfig struct {
 	DB_PORT  string
 }
 
+type LogConfig struct {
+	Level string
+}
+
 type Config struct {
 	Storage StorageConfig
 	DB      DBConfig
+	Log     LogConfig
 }
 
 // New returns a new Config struct
@@ -55,6 +60,9 @@ func New() *Config {
 			PASSWORD: getEnv("DB_PASSWORD"),
 			DB_HOST:  getEnv("DB_HOST"),
 			DB_PORT:  getEnv("DB_PORT"),
+		},
+		Log: LogConfig{
+			Level: getEnv("LOG_LEVEL"),
 		},
 	}
 }

@@ -2,7 +2,6 @@ package entity
 
 import (
 	"bytes"
-	"log"
 	"os"
 	"path/filepath"
 )
@@ -26,14 +25,18 @@ func NewFile() *File {
 func (f *File) SetFile(path string) error {
 	err := os.MkdirAll(path, os.ModePerm)
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
+
 	f.FilePath = filepath.Join(path, f.CreatedAt+f.FileName)
+
 	file, err := os.Create(f.FilePath)
 	if err != nil {
 		return err
 	}
+
 	f.OutputFile = file
+
 	return nil
 }
 
@@ -41,7 +44,9 @@ func (f *File) Write(chunk []byte) error {
 	if f.OutputFile == nil {
 		return nil
 	}
+
 	_, err := f.OutputFile.Write(chunk)
+
 	return err
 }
 

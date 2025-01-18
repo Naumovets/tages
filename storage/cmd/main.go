@@ -27,6 +27,19 @@ const (
 func main() {
 	cfg := config.New()
 
+	switch cfg.Log.Level {
+	case "debug":
+		slog.SetDefault(slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelDebug})))
+	case "info":
+		slog.SetDefault(slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelInfo})))
+	case "warn":
+		slog.SetDefault(slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelWarn})))
+	case "error":
+		slog.SetDefault(slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelError})))
+	default:
+		slog.SetDefault(slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelInfo})))
+	}
+
 	databaseURL := fmt.Sprintf(
 		"postgres://%s:%s@%s:%s/%s?sslmode=disable",
 		cfg.DB.USER,
@@ -55,15 +68,13 @@ func main() {
 	conn, err := postgres.NewConn(cfg)
 
 	if err != nil {
-		log.Fatalf("err: %s\n", err)
-		os.Exit(1)
+		log.Fatal(err)
 	}
 
 	rep := repository.NewRepository(conn)
 
 	if err != nil {
-		log.Fatalf("err: %s\n", err)
-		os.Exit(2)
+		log.Fatal(err)
 	}
 
 	grpcServer := grpc.NewServer(
@@ -79,7 +90,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	log.Printf("gRPC server listening")
+	slog.Info("gRPC server listening")
 
 	err = grpcServer.Serve(lis)
 	if err != nil {

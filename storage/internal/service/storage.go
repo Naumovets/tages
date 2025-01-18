@@ -3,7 +3,6 @@ package service
 import (
 	"fmt"
 	"io"
-	"log"
 	"log/slog"
 	"time"
 
@@ -12,6 +11,10 @@ import (
 	"github.com/google/uuid"
 )
 
+// Upload handles the gRPC stream for uploading files. It creates a new file,
+// writes chunks received from the client to it and saves the file to the
+// repository. It returns the ID of the uploaded file or an error if something
+// fails.
 func (s *service) Upload(stream tages.Storage_UploadServer) (string, error) {
 	file := entity.NewFile()
 	defer func() {
@@ -62,6 +65,8 @@ func (s *service) Upload(stream tages.Storage_UploadServer) (string, error) {
 	return file.Id, nil
 }
 
+// GetList returns a list of files from the repository, starting from the given
+// offset and limited to the given limit. It returns an error if something fails.
 func (s *service) GetList(limit, offset int64) ([]*tages.File, error) {
 	files, err := s.rep.GetList(int(limit), int(offset))
 	if err != nil {
@@ -83,6 +88,8 @@ func (s *service) GetList(limit, offset int64) ([]*tages.File, error) {
 	return tagesFiles, nil
 }
 
+// Download returns a file from the repository by its id. It returns an error if
+// something fails.
 func (s *service) Download(id string, stream tages.Storage_DownloadServer) error {
 	fileDB, err := s.rep.GetById(id)
 	if err != nil {
@@ -113,7 +120,6 @@ func (s *service) Download(id string, stream tages.Storage_DownloadServer) error
 		if err := stream.Send(&tages.DownloadResponse{FileName: fileDB.FileName, Chunk: chunk}); err != nil {
 			return err
 		}
-		log.Printf("Sent - batch #%v - size - %v\n", batchNumber, len(chunk))
 		batchNumber += 1
 
 	}
