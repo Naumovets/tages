@@ -1,0 +1,53 @@
+package controller
+
+import (
+	"context"
+
+	tages "github.com/Naumovets/tages/pkg/proto/storage"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
+)
+
+func (s *serverStorage) Upload(stream tages.Storage_UploadServer) error {
+	s.uploadDownloadLimiter <- struct{}{}
+	defer func() { <-s.uploadDownloadLimiter }()
+
+	id, err := s.service.Upload(stream)
+	if err != nil {
+		return status.Error(codes.Internal, err.Error())
+	}
+
+	return stream.SendAndClose(&tages.UploadResponse{Id: id})
+}
+
+func (s *serverStorage) GetList(ctx context.Context, req *tages.ListFilesRequest) (*tages.ListFilesResponse, error) {
+	s.getListLimiter <- struct{}{}
+	defer func() { <-s.getListLimiter }()
+
+	if req.GetLimit() == 0 {
+		req.Limit = 10
+	}
+
+	if req.GetOffset() == 0 {
+		req.Offset = 0
+	}
+
+	files, err := s.service.GetList(req.GetLimit(), req.GetOffset())
+	if err != nil {
+		return nil, status.Error(codes.Internal, err.Error())
+	}
+
+	return &tages.ListFilesResponse{Files: files}, nil
+}
+
+func (s *serverStorage) Download(req *tages.DownloadRequest, stream tages.Storage_DownloadServer) error {
+	s.uploadDownloadLimiter <- struct{}{}
+	defer func() { <-s.uploadDownloadLimiter }()
+
+	err := s.service.Download(req.GetId(), stream)
+	if err != nil {
+		return status.Error(codes.Internal, err.Error())
+	}
+
+	return nil
+}

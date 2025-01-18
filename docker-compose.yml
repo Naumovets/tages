@@ -1,0 +1,38 @@
+version: '3'
+
+
+services:
+  pg:
+    image: postgres:16
+    restart: always
+    networks:
+      - network
+    environment:
+      - POSTGRES_DB=${DB_NAME}
+      - POSTGRES_USER=${DB_USER}
+      - POSTGRES_PASSWORD=${DB_PASSWORD}
+    volumes:
+      - ./postgres_volume:/var/lib/postgresql/data
+  storage:
+    networks:
+      - network
+    depends_on:
+      - pg
+    container_name: storage
+    restart: always
+    env_file:
+      - ./.env
+    ports:
+      - 9051:50051
+    build:
+      context: .
+      dockerfile: ./dockerfile
+    volumes:
+      - ./files/:/root/${STORAGE_LOCATION}
+
+networks:
+  network:
+    driver: bridge
+
+volumes:
+  client_files:
