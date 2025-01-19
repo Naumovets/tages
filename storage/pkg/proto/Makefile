@@ -16,3 +16,11 @@ generate-storage:
 		--go-grpc_out=storage --go-grpc_opt=paths=source_relative \
 		--plugin=protoc-gen-go-grpc=bin/protoc-gen-go-grpc \
 		storage/storage.proto
+
+vendor-proto:
+	@if [ ! -d vendor.protogen/google ]; then \
+		git clone https://github.com/googleapis/googleapis vendor.protogen/googleapis && \
+		mkdir -p vendor.protogen/google/ &&\
+		mv vendor.protogen/googleapis/google/api vendor.protogen/google && \
+		rm -rf vendor.protogen/googleapis ;\
+	fi
