@@ -67,7 +67,7 @@ func (s *service) Upload(stream tages.Storage_UploadServer) (string, error) {
 
 // GetList returns a list of files from the repository, starting from the given
 // offset and limited to the given limit. It returns an error if something fails.
-func (s *service) GetList(limit, offset int64) ([]*tages.File, error) {
+func (s *service) GetList(limit, offset uint64) ([]*tages.File, error) {
 	files, err := s.rep.GetList(int(limit), int(offset))
 	if err != nil {
 		slog.Debug("failed to list files", "error", err)
